@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:id="@+id/imgMap"
+        android:src="@drawable/mapa"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textMap"
+        android:text="LOCATION"
+        android:layout_below="@+id/imgMap"
+        android:layout_margin="40dp"
+        android:layout_centerHorizontal="true" />
+
+    <!--<Button-->
+    <!--android:id="@+id/btnLocation"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="GET LOCATION"-->
+    <!--android:background="@color/colorPrimary"-->
+    <!--android:textColor="@color/white"-->
+    <!--android:layout_below="@+id/textMap"/>-->
+
+    <Button
+        android:id="@+id/btnLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mulai Track Lokasi"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:layout_below="@+id/textMap"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/location_text"
+        android:text="Tap button diatas ini dan dapatkan lokasi anda"
+        android:layout_below="@+id/btnLocation"
+        android:layout_margin="20dp"
+        android:layout_centerHorizontal="true" />
+
+
+</RelativeLayout>
