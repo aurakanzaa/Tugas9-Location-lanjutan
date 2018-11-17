@@ -17,7 +17,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DapatkanAlamatTask.onTaskSelesai{
 
     // btn location
     public Button btnLoc;
@@ -68,13 +68,15 @@ public class MainActivity extends AppCompatActivity {
                             if(location != null){
 //                                get lang long
 
-                                mLastLocation = location;
-                                mLocationTextView. setText(
-                                        getString(R.string.location_text,
-                                                mLastLocation.getLatitude(),
-                                                mLastLocation.getLongitude(),
-                                                mLastLocation.getTime())
-                                );
+//                                mLastLocation = location;
+//                                mLocationTextView. setText(
+//                                        getString(R.string.location_text,
+//                                                mLastLocation.getLatitude(),
+//                                                mLastLocation.getLongitude(),
+//                                                mLastLocation.getTime())
+//                                );
+
+                                new DapatkanAlamatTask(MainActivity.this, MainActivity.this).execute(location);
 
                             } else {
                                 mLocationTextView.setText("Lokasi tidak tersedia");
@@ -83,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
         }
+        mLocationTextView.setText(getString(R.string.alamat_text, "sedang mencari alamat",
+                System.currentTimeMillis()));
 
     }
 
@@ -105,5 +109,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
+    @Override
+    public void onTaskCompleted(String result) {
+        mLocationTextView.setText(getString(R.string.alamat_text,
+                result, System.currentTimeMillis()));
+    }
 }
