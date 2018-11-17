@@ -21,7 +21,14 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceDetectionClient;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 public class MainActivity extends AppCompatActivity implements DapatkanAlamatTask.onTaskSelesai{
 
@@ -47,10 +54,18 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
 
     private boolean mTrackingLocation;
 
+//    places class
+    private PlaceDetectionClient mPlaceDetectionClient;
+    private String mLastPlaceName;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // untuk mendapat informasi lokasi device
+        mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mLocationTextView = (TextView) findViewById(R.id.textMap);
@@ -137,7 +152,8 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
             mFusedLocationClient.requestLocationUpdates(getLocationRequest(), mLocationCallback,null );
 
 
-            mLocationTextView.setText(getString(R.string.alamat_text, "sedang mencari alamat",
+            mLocationTextView.setText(getString(R.string.alamat_text, "sedang mencari nama tempat",
+                    "sedang mencari alamat",
                     System.currentTimeMillis()));
             mTrackingLocation = true;
             btnLoc.setText("Stop Tracking Lokasi");
@@ -168,13 +184,64 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
     }
 
     @Override
-    public void onTaskCompleted(String result) {
-        // update UI dengan tampilan hasil alamat
-//        mLocationTextView.setText(getString(R.string.alamat_text, result, System.currentTimeMillis()));
-
+    public void onTaskCompleted(final String result) throws SecurityException {
 
 //        untuk mengecek mTrackingLocatin aktif atau tidak
         if(mTrackingLocation){
+
+            Task<PlaceLikelihoodBufferResponse> placeResult=
+                    mPlaceDetectionClient.getCurrentPlace(null);
+            placeResult.addOnCompleteListener(
+                    new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
+                        @Override
+                        public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
+                            // mengecek apakah task berhasil atau tidak
+                            if(task.isSuccessful()){
+                                // ini diisi jika berhasil
+                                PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
+                                float maxLikelihood = 0;
+                                Place currentPlace = null;
+
+                                // cek tempat yg dihasilkan adalah tempat yg paling mendekati(likehood)
+                                for (PlaceLikelihood placeLikelihood : likelyPlaces){
+                                    if(maxLikelihood < placeLikelihood.getLikelihood()){
+                                        maxLikelihood = placeLikelihood.getLikelihood();
+                                        currentPlace = placeLikelihood.getPlace();
+                                    }
+
+
+                                }
+
+                                // tampilan di UI
+                                if(currentPlace !=null){
+                                    mLocationTextView.setText(
+                                            getString(R.string.alamat_text,
+                                                    currentPlace.getName(),
+                                                    result,
+                                                    System.currentTimeMillis())
+                                    );
+                                    // ubah icon berdasar tipe lokasi
+                                    setTipeLokasi(currentPlace);
+                                }
+
+                                likelyPlaces.release();
+                            } else {
+                                // ini juga diisi
+                                mLocationTextView.setText(
+                                        getString(R.string.alamat_text,
+                                                "nama lokasi tidak ditemukan",
+                                                result,
+                                                System.currentTimeMillis())
+                                );
+                            }
+                        }
+                    }
+            );
+
+            // menampilkan semua tempat
+            mPlaceDetectionClient.getCurrentPlace(null);
+
+            // menampilkan alamat
             mLocationTextView.setText(getString(R.string.alamat_text, result, System.currentTimeMillis()));
         }
     }
@@ -206,6 +273,35 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
         // parameter untuk memilih akurasi dan akurasi tinggi menggunakan GPS
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationRequest;
+    }
+
+    // menampilkan lokasi
+    private void setTipeLokasi(Place currentPlace){
+        int drawableID = -1;
+        for (Integer placeType : currentPlace.getPlaceTypes()){
+            switch (placeType){
+                case Place.TYPE_ATM:
+                    drawableID = R.drawable.atm;
+                    break;
+                case Place.TYPE_BAKERY:
+                    drawableID = R.drawable.bread;
+                    break;
+                case Place.TYPE_CAFE:
+                    drawableID = R.drawable.cafe;
+                    break;
+                case Place.TYPE_CLOTHING_STORE:
+                    drawableID = R.drawable.hanger;
+                    break;
+                case Place.TYPE_FLORIST:
+                    drawableID = R.drawable.florist;
+                    break;
+            }
+        }
+
+        if(drawableID<0){
+            drawableID = R.drawable.ufo;
+        }
+        mAndroidImageView.setImageResource(drawableID);
     }
 
 }
