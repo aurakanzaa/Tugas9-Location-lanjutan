@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/location_text"
-        android:text="Tap button diatas ini dan dapatkan lokasi anda"
+        android:text="Tap button dibawah ini dan dapatkan lokasi anda"
         android:layout_below="@id/textMap"
         android:layout_marginTop="10dp"
         android:textStyle="bold"
