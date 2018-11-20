@@ -3,6 +3,7 @@ package com.example.aura.a9_location;
 import android.Manifest;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -16,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -26,6 +29,7 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -34,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
 
     // btn location
     public Button btnLoc;
+    public Button btnPilihLoc;
 
     // variable dg tipe Location
     private Location mLastLocation;
@@ -48,6 +53,9 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
     // Constant digunakan untuk mmengidentifikasi req permission
     // dari method onRequestPermissionResult()
     private static final int REQUEST_LOCATION_PERMISSION = 1;
+
+    // Constant untuk mendapatkan hasil
+    private static final int REQUEST_PICK_PLACE = 1;
 
     private ImageView mAndroidImageView;
     private AnimatorSet mRotateAnim;
@@ -70,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mLocationTextView = (TextView) findViewById(R.id.textMap);
         btnLoc = (Button) findViewById(R.id.btnLocation);
+        btnPilihLoc = (Button) findViewById(R.id.btnPilihLocation);
         mAndroidImageView = (ImageView) findViewById(R.id.imgMap);
 
         mLocationCallback = new LocationCallback(){
@@ -101,9 +110,53 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
                 }
             }
         });
+
+
+        btnPilihLoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//              click handler untuk mengeksekusi placepicker
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+                try{
+                    startActivityForResult(builder.build(MainActivity.this), REQUEST_PICK_PLACE );
+                } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
     }
 
-//    private void getLocation(){
+    /**
+     * Dispatch incoming result to the correct fragment.
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK){
+            // mendapatkan object dr placepicker
+            Place place = PlacePicker.getPlace(this,data );
+
+            setTipeLokasi(place);
+            mLocationTextView.setText(
+                    getString(R.string.alamat_text,
+                            place.getName(),
+                            place.getAddress(),
+                            System.currentTimeMillis())
+            );
+
+        } else{
+            mLocationTextView.setText("belum pilih lokasi bebs");
+
+        }
+    }
+
+    //    private void getLocation(){
 //        if(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
 //                != PackageManager.PERMISSION_GRANTED){
 //            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION} ,
@@ -242,7 +295,8 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
             mPlaceDetectionClient.getCurrentPlace(null);
 
             // menampilkan alamat
-            mLocationTextView.setText(getString(R.string.alamat_text, result, System.currentTimeMillis()));
+//            mLocationTextView.setText(getString(R.string.alamat_text, result, System.currentTimeMillis()));
+//            mLocationTextView.setText("coba dulu");
         }
     }
 
@@ -280,8 +334,8 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
         int drawableID = -1;
         for (Integer placeType : currentPlace.getPlaceTypes()){
             switch (placeType){
-                case Place.TYPE_ATM:
-                    drawableID = R.drawable.atm;
+                case Place.TYPE_HOSPITAL:
+                    drawableID = R.drawable.hospital;
                     break;
                 case Place.TYPE_BAKERY:
                     drawableID = R.drawable.bread;
@@ -289,11 +343,11 @@ public class MainActivity extends AppCompatActivity implements DapatkanAlamatTas
                 case Place.TYPE_CAFE:
                     drawableID = R.drawable.cafe;
                     break;
-                case Place.TYPE_CLOTHING_STORE:
-                    drawableID = R.drawable.hanger;
+                case Place.TYPE_UNIVERSITY:
+                    drawableID = R.drawable.school;
                     break;
-                case Place.TYPE_FLORIST:
-                    drawableID = R.drawable.florist;
+                case Place.TYPE_BANK:
+                    drawableID = R.drawable.bank;
                     break;
             }
         }
